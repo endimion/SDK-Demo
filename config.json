@@ -2,7 +2,7 @@
    "chainName":"hello-world",
    "deployWaitTime":"60",
    "user": {
-	"username": "JohnDoe",
+	"username": "JohnDoe2",
         "affiliation" : "group1"
    },
    "deployRequest":{

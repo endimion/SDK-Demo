@@ -150,7 +150,8 @@ function enrollAndRegisterUsers() {
             console.log("\nEnrolled and registered " + newUserName + " successfully");
             userObj = user;
             //setting timers for fabric waits
-            chain.setDeployWaitTime(config.deployWaitTime);
+            // chain.setDeployWaitTime(config.deployWaitTime);
+            chain.setDeployWaitTime(400);
             console.log("\nDeploying chaincode ...");
             deployChaincode();
         });
