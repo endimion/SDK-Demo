@@ -196,7 +196,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	fmt.Printf("Query Response:%s\n", jsonResp)
 
 
-	Avalbytes, err := stub.GetState("Test")
+	Avalbytes, err = stub.GetState("Test")
 	if err != nil {
 		jsonResp := "{\"Error\":\"Failed to get state for TEST\"}"
 		return nil, errors.New(jsonResp)
