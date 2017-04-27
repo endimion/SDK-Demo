@@ -20,18 +20,26 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-
+  "encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
 }
+//Diploma Suplement Structure
+type DiplomaSupplement struct {
+		Owner string
+		University string
+		Authorized []string
+}
+
 var EVENT_COUNTER = "event_counter"
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
 	var err error
+	var testSupplement  DiplomaSupplement // Fake  Diploma supplement
 
 	if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
@@ -64,6 +72,21 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
+	//add the diploma supplement to the state of the blockchain
+	authorizedUsers := make([]string,0)
+	testSupplement = DiplomaSupplement{Owner: "me", University:"ntua", Authorized:authorizedUsers}
+	jsonDip, err := json.Marshal(testSupplement)
+	if err != nil {
+			fmt.Println("error:", err)
+	}
+
+	err = stub.PutState("Test", []byte(jsonDip))
+	if err != nil {
+	return nil, err
+	}
+
+
+
 	return nil, nil
 }
 
