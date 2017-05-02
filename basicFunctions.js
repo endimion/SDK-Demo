@@ -1,0 +1,11 @@
+config;
+var chain;
+var network;
+var certPath;
+var peers;
+var users;
+var userObj;
+var newUserName;
+var chaincodeID;
+var certFile = 'us.blockchain.ibm.com.cert';
+var chaincodeIDPath = __dirname + "/chaincodeID";

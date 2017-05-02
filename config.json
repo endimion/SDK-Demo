@@ -1,9 +1,10 @@
 {
-   "chainName":"hello-world",
+   "chainName":"hello-world-test",
    "deployWaitTime":"60",
    "user": {
-	"username": "JohnDoe2",
-        "affiliation" : "group1"
+	     "username": "TestUniversity_2",
+        "affiliation" : "group1",
+        "attributes" : [{"name":"typeOfUser","value":"University"}]
    },
    "deployRequest":{
       "chaincodePath":"chaincode",

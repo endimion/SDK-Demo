@@ -218,14 +218,22 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
 
-
-	Avalbytes, err = stub.GetState("Test")
-	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for TEST\"}"
-		return nil, errors.New(jsonResp)
+	attr, err := stub.ReadCertAttribute("typeOfUser")
+  attrString := string(attr)
+	if attrString == "University"{
+		Avalbytes, err = stub.GetState("Test")
+		if err != nil {
+			jsonResp := "{\"Error\":\"Failed to get state for TEST\"}"
+			return nil, errors.New(jsonResp)
+		}
+		return Avalbytes, nil
+	}else{
+		return nil, errors.New("Only University typeOfUsers may perform this action")
 	}
 
-	return Avalbytes, nil
+
+
+
 }
 
 func main() {
