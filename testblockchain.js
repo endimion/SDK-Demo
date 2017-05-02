@@ -164,26 +164,26 @@ function enrollAndRegisterUsers() {
               query2(user);
 
 
-              registrationRequest = {
-                  enrollmentID: "nonUniversityUser",
-                  affiliation: config.user.affiliation,
-                 attributes: attributes
-              };
-              console.log("\nWill Enrolled and registered nonUniversityUser");
-              chain.registerAndEnroll(registrationRequest, function(err, user) {
-                  if (err) throw Error(" Failed to register and enroll " + newUserName + ": " + err);
-
-                  console.log("\nEnrolled and registered  nonUniversityUser successfully");
-                  userObj = user;
-                  //console.log(user);
-                  //setting timers for fabric waits
-                  // chain.setDeployWaitTime(config.deployWaitTime);
-                  chain.setDeployWaitTime(400);
-                  // console.log("\nDeploying chaincode ...");
-                  // deployChaincode();
-                  //attempt to make a query with a university type of user
-                      query2(user);
-              });
+              // registrationRequest = {
+              //     enrollmentID: "nonUniversityUser",
+              //     affiliation: config.user.affiliation,
+              //    attributes: attributes
+              // };
+              // console.log("\nWill Enrolled and registered nonUniversityUser");
+              // chain.registerAndEnroll(registrationRequest, function(err, user) {
+              //     if (err) throw Error(" Failed to register and enroll " + newUserName + ": " + err);
+              //
+              //     console.log("\nEnrolled and registered  nonUniversityUser successfully");
+              //     userObj = user;
+              //     //console.log(user);
+              //     //setting timers for fabric waits
+              //     // chain.setDeployWaitTime(config.deployWaitTime);
+              //     chain.setDeployWaitTime(400);
+              //     // console.log("\nDeploying chaincode ...");
+              //     // deployChaincode();
+              //     //attempt to make a query with a university type of user
+              //         query2(user);
+              // });
 
 
         });

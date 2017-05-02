@@ -228,7 +228,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		}
 		return Avalbytes, nil
 	}else{
-		return nil, errors.New("Only University typeOfUsers may perform this action")
+		return nil, errors.New("Only University typeOfUsers may perform this action not " + attrString)
 	}
 
 
