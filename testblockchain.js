@@ -140,13 +140,13 @@ function enrollAndRegisterUsers() {
         // Set this user as the chain's registrar which is authorized to register other users.
         chain.setRegistrar(admin);
 
-        let attributes = config.user.attributes;//[{name:'typeOfUser',value:'University'}];
+        let attributes = [{name:'typeOfUser',value:'University'}];
         //creating a new user
         console.log(config.user.attributes);
         var registrationRequest = {
             enrollmentID: newUserName,
             affiliation: config.user.affiliation,
-           attributes: attributes
+            attributes: attributes
         };
 
 
@@ -299,13 +299,19 @@ function query() {
 function query2(userObj) {
     var args = getArgs(config.queryRequest);
     // Construct the query request
+    console.log(args);
+    let attrs = [{typeOfUser:"University"}];
+    let attributes = ['typeOfUser'];//[{name:'typeOfUser',value:'University'}];
+    console.log(attrs);
     var queryRequest = {
         // Name (hash) required for query
         chaincodeID: chaincodeID,
         // Function to trigger
         fcn: config.queryRequest.functionName,
         // Existing state variable to retrieve
-        args: args
+        args: args,
+        //pass explicit attributes to teh query
+         attrs: attributes
     };
 
     // Trigger the query transaction

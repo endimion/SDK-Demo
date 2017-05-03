@@ -218,7 +218,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
 
-	attr, err := stub.ReadCertAttribute("typeOfUser")
+	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
   attrString := string(attr)
 	if attrString == "University"{
 		Avalbytes, err = stub.GetState("Test")

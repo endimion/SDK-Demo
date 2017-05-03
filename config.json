@@ -1,8 +1,8 @@
 {
-   "chainName":"hello-world-test",
+   "chainName":"hello-world-test2",
    "deployWaitTime":"60",
    "user": {
-	     "username": "TestUniversity_2",
+	     "username": "MyTestUniversity2",
         "affiliation" : "group1",
         "attributes" : [{"name":"typeOfUser","value":"University"}]
    },
