@@ -300,7 +300,7 @@ function query2(userObj) {
     var args = getArgs(config.queryRequest);
     // Construct the query request
     console.log(args);
-    let attrs = [{typeOfUser:"University"}];
+    
     let attributes = ['typeOfUser'];//[{name:'typeOfUser',value:'University'}];
     console.log(attrs);
     var queryRequest = {
