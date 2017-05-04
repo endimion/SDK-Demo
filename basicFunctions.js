@@ -1,3 +1,5 @@
+'use strict';
+
 process.env.GOPATH = __dirname;
 
 var hfc = require('hfc');
@@ -28,6 +30,8 @@ exports.init = initNetwork;
 exports.config = networkConfig;
 exports.enrollAndRegisterUsers = enrollAndRegisterUsers;
 exports.query = queryByReqAndAttributes;
+exports.invoke = invokeWithParams;
+exports.deploy = deployChaincodeWithParams;
 
 function initNetwork() {
     try {
@@ -148,8 +152,12 @@ function printNetworkDetails() {
 }
 
 
-
-function enrollAndRegisterUsers(userName,attributes) {
+/**
+  @param userName the name of the user we will enroll
+  @param enrollAttr an array containing the attributes the user will be enrolled
+  with, e.g. [{name:'typeOfUser',value:'University'}];
+**/
+function enrollAndRegisterUsers(userName,enrollAttr) {
     return new Promise(function(resolve,reject){
       // Enroll a 'admin' who is already registered because it is
       // listed in fabric/membersrvc/membersrvc.yaml with it's one time password.
@@ -163,13 +171,13 @@ function enrollAndRegisterUsers(userName,attributes) {
           // Set this user as the chain's registrar which is authorized to register other users.
           networkConfig.chain.setRegistrar(admin);
 
-          // let attributes = [{name:'typeOfUser',value:'University'}];
+          // let enrollAttr = [{name:'typeOfUser',value:'University'}];
           //creating a new user
 
           var registrationRequest = {
               enrollmentID: userName,
               affiliation: networkConfig.config.user.affiliation,
-              attributes: attributes
+              attributes: enrollAttr
           };
 
 
@@ -182,8 +190,9 @@ function enrollAndRegisterUsers(userName,attributes) {
               // chain.setDeployWaitTime(config.deployWaitTime);
               networkConfig.chain.setDeployWaitTime(400);
               // console.log("\nDeploying chaincode ...");
-              // deployChaincode();
-              //attempt to make a query with a university type of user
+
+              //Similarly set timer for invocation transactions
+              // networkConfig.chain.setInvokeWaitTime(100);
               resolve(user);
                 // query2(user);
           });
@@ -193,196 +202,117 @@ function enrollAndRegisterUsers(userName,attributes) {
 
 
 
+/**
+  @param userObj the user object obtained after enrolling a user
+  @param a deploy request object, e.g.
+  var deployRequest = {
+      // Function to trigger
+      fcn: networkConfig.config.deployRequest.functionName,
+      // Arguments to the initializing function
+      args: args,
+      chaincodePath: networkConfig.config.deployRequest.chaincodePath,
+      // the location where the startup and HSBN store the certificates
+      certificatePath: networkConfig.network.cert_path
+  };
+**/
+function deployChaincodeWithParams(userObj,deployReq) {
 
-function deployChaincode() {
-    var args = getArgs(config.deployRequest);
-    // Construct the deploy request
-    var deployRequest = {
-        // Function to trigger
-        fcn: config.deployRequest.functionName,
-        // Arguments to the initializing function
-        args: args,
-        chaincodePath: config.deployRequest.chaincodePath,
-        // the location where the startup and HSBN store the certificates
-        certificatePath: network.cert_path
-    };
+  return new Promise(function(resolve,reject){
+       // Trigger the deploy transaction
+      var deployTx = userObj.deploy(deployReq);
 
-    // Trigger the deploy transaction
-    var deployTx = userObj.deploy(deployRequest);
+      // Print the deploy results
+      deployTx.on('complete', function(results) {
+          // Deploy request completed successfully
+          chaincodeID = results.chaincodeID;
+          console.log("\nChaincode ID : " + chaincodeID);
+          console.log(util.format("\nSuccessfully deployed chaincode: request=%j, response=%j", deployReq, results));
+          // Save the chaincodeID
+          fs.writeFileSync(chaincodeIDPath, chaincodeID);
+          //invoke();
+          resolve(results);
+      });
 
-    // Print the deploy results
-    deployTx.on('complete', function(results) {
-        // Deploy request completed successfully
-        chaincodeID = results.chaincodeID;
-        console.log("\nChaincode ID : " + chaincodeID);
-        console.log(util.format("\nSuccessfully deployed chaincode: request=%j, response=%j", deployRequest, results));
-        // Save the chaincodeID
-        fs.writeFileSync(chaincodeIDPath, chaincodeID);
-        invoke();
-    });
-
-    deployTx.on('error', function(err) {
-        // Deploy request failed
-        console.log(util.format("\nFailed to deploy chaincode: request=%j, error=%j", deployRequest, err));
-        process.exit(1);
+      deployTx.on('error', function(err) {
+          // Deploy request failed
+          console.log(util.format("\nFailed to deploy chaincode: request=%j, error=%j", deployReq, err));
+          // process.exit(1);
+          reject(err);
+      });
     });
 }
 
-function invoke() {
-    var args = getArgs(config.invokeRequest);
-    var eh = chain.getEventHub();
-    // Construct the invoke request
-    var invokeRequest = {
-        // Name (hash) required for invoke
-        chaincodeID: chaincodeID,
-        // Function to trigger
-        fcn: config.invokeRequest.functionName,
-        // Parameters for the invoke function
-        args: args
-    };
 
+
+/**
+  @param the userObj that is returned after a scuessful enrollement of a user
+  @param the invokation request, e.g. invokeRequest = {
+  //     // Name (hash) required for invoke
+  //     chaincodeID: networkConfig.chaincodeID,
+  //     // Function to trigger
+  //     fcn: networkConfig.config.invokeRequest.functionName,
+  //     // Parameters for the invoke function
+  //     args: args
+  // };
+**/
+function invokeWithParams(userObj,invReq) {
+  return new Promise(function(resolve,reject){
+    var eh = networkConfig.chain.getEventHub();
     // Trigger the invoke transaction
-    var invokeTx = userObj.invoke(invokeRequest);
-
+    var invokeTx = userObj.invoke(invReq);
     // Print the invoke results
     invokeTx.on('submitted', function(results) {
         // Invoke transaction submitted successfully
-        console.log(util.format("\nSuccessfully submitted chaincode invoke transaction: request=%j, response=%j", invokeRequest, results));
+        console.log(util.format("\nSuccessfully submitted chaincode invoke transaction: request=%j, response=%j", invReq, results));
     });
     invokeTx.on('complete', function(results) {
         // Invoke transaction completed successfully
-        console.log(util.format("\nSuccessfully completed chaincode invoke transaction: request=%j, response=%j", invokeRequest, results));
-        query();
+        console.log(util.format("\nSuccessfully completed chaincode invoke transaction: request=%j, response=%j", invReq, results));
+        resolve(results);
     });
     invokeTx.on('error', function(err) {
         // Invoke transaction submission failed
-        console.log(util.format("\nFailed to submit chaincode invoke transaction: request=%j, error=%j", invokeRequest, err));
-        process.exit(1);
+        console.log(util.format("\nFailed to submit chaincode invoke transaction: request=%j, error=%j", invReq, err));
+        reject(err);
+        // process.exit(1);
     });
 
     //Listen to custom events
-    var regid = eh.registerChaincodeEvent(chaincodeID, "evtsender", function(event) {
+    var regid = eh.registerChaincodeEvent(invReq.chaincodeID, "evtsender", function(event) {
         console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
         eh.unregisterChaincodeEvent(regid);
     });
-}
-
-function query() {
-    var args = getArgs(config.queryRequest);
-    // Construct the query request
-    var queryRequest = {
-        // Name (hash) required for query
-        chaincodeID: chaincodeID,
-        // Function to trigger
-        fcn: config.queryRequest.functionName,
-        // Existing state variable to retrieve
-        args: args
-    };
-
-    // Trigger the query transaction
-    var queryTx = userObj.query(queryRequest);
-
-    // Print the query results
-    queryTx.on('complete', function(results) {
-        // Query completed successfully
-        console.log("\nSuccessfully queried  chaincode function: request=%j, value=%s", queryRequest, results.result.toString());
-        process.exit(0);
-    });
-    queryTx.on('error', function(err) {
-        // Query failed
-        console.log("\nFailed to query chaincode, function: request=%j, error=%j", queryRequest, err);
-        process.exit(1);
-    });
+  });
 }
 
 
 
 
-function queryByReqAndAttributes(userObj,request,attr,_args) {
+function queryByReqAndAttributes(userObj,request,attr) {
 
   return new Promise(function(resolve,reject){
-    //var args = getArgs(networkConfig.config.queryRequest);
-    var args = getArgs(networkConfig.config.queryRequest);
-    // Construct the query request
-    console.log(args);
-
-    let attributes = ['typeOfUser'];//[{name:'typeOfUser',value:'University'}];
-    var queryRequest = {
-        // Name (hash) required for query
-        chaincodeID: networkConfig.chaincodeID,
-        // Function to trigger
-        fcn: networkConfig.config.queryRequest.functionName,
-        // Existing state variable to retrieve
-        args: args,
-        //pass explicit attributes to teh query
-         attrs: attributes
-    };
-
     // Trigger the query transaction
-    var queryTx = userObj.query(queryRequest);
-
+    var queryTx = userObj.query(request);
     // Print the query results
     queryTx.on('complete', function(results) {
         // Query completed successfully
-        console.log("\nSuccessfully queried  chaincode function: request=%j, value=%s", queryRequest, results.result.toString());
+        console.log("\nSuccessfully queried  chaincode function: request=%j, value=%s", request, results.result.toString());
         //process.exit(0);
         resolve(results.result.toString());
     });
     queryTx.on('error', function(err) {
         // Query failed
-        console.log("\nFailed to query chaincode, function: request=%j, error=%j", queryRequest, err);
+        console.log("\nFailed to query chaincode, function: request=%j, error=%j", request, err);
         //process.exit(1);
         reject(err);
     });
   });
-
 }
 
 
 
 
 
-
-
-
-
-
-
-
-
-function query2(userObj) {
-    var args = getArgs(config.queryRequest);
-    // Construct the query request
-    console.log(args);
-
-    let attributes = ['typeOfUser'];//[{name:'typeOfUser',value:'University'}];
-    console.log(attrs);
-    var queryRequest = {
-        // Name (hash) required for query
-        chaincodeID: chaincodeID,
-        // Function to trigger
-        fcn: config.queryRequest.functionName,
-        // Existing state variable to retrieve
-        args: args,
-        //pass explicit attributes to teh query
-         attrs: attributes
-    };
-
-    // Trigger the query transaction
-    var queryTx = userObj.query(queryRequest);
-
-    // Print the query results
-    queryTx.on('complete', function(results) {
-        // Query completed successfully
-        console.log("\nSuccessfully queried  chaincode function: request=%j, value=%s", queryRequest, results.result.toString());
-        process.exit(0);
-    });
-    queryTx.on('error', function(err) {
-        // Query failed
-        console.log("\nFailed to query chaincode, function: request=%j, error=%j", queryRequest, err);
-        process.exit(1);
-    });
-}
 
 
 
