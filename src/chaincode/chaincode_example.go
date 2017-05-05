@@ -22,8 +22,7 @@ import (
 	"strconv"
   "encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"bytes"
- 	"encoding/gob"
+	 
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -44,6 +43,9 @@ type Assets struct{
 	Universities []string
 }
 
+type SupplementsAsset struct{
+   Supplements []string
+}
 
 var EVENT_COUNTER = "event_counter"
 
@@ -269,31 +271,19 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 
 func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	// if len(args) != 1 {
-	// 	return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	// }
 
-	// DiplomaSupplement := args[0]
-
-	// Delete the key from the state in ledger
-	// err := stub.DelState(A)
-	// if err != nil {
-	// 	return nil, errors.New("Failed to delete state")
-	// }
-	asssetBytes, err := stub.GetState("assets")
+	assetBytes, err := stub.GetState("assets")
 	if err != nil {
 		jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
 		return nil, errors.New(jsonResp)
 	}
 	res := Assets{}
-	json.Unmarshal([]byte(asssetBytes), &res)
+	json.Unmarshal([]byte(assetBytes), &res)
 
-	stringSlice := res.Supplements
- 	buffer := &bytes.Buffer{}
- 	gob.NewEncoder(buffer).Encode(stringSlice)
- 	byteSlice := buffer.Bytes()
+	supps:= SupplementsAsset{Supplements:res.Supplements}
+	encodedSupps,_ := json.Marshal(supps)
 
-	return byteSlice, nil
+	return []byte(encodedSupps), nil
 }
 
 
