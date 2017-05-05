@@ -48,8 +48,8 @@ let deployRequest = {
 };
 
 
-testDeploy();
-
+//testDeploy();
+testQueries2();
 
 function testDeploy(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
@@ -103,5 +103,21 @@ function testQueries(){
 
 }
 
+
+
+function testQueries2(){
+  let testQ2 = new ChainCodeQuery(attributes, args, basic.config.chaincodeID,"getSupplements",basic.query);
+  let testQfunc2 = testQ2.makeQuery.bind(testQ2);
+  basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
+      .then(testQfunc2).then(res =>{
+        console.log("\nthe result is" + res);
+        process.exit(0);
+      })
+      .catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
+
+}
 
 //

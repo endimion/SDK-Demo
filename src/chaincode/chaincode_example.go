@@ -22,6 +22,8 @@ import (
 	"strconv"
   "encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"bytes"
+ 	"encoding/gob"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -283,7 +285,15 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 		jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
 		return nil, errors.New(jsonResp)
 	}
-	return asssetBytes, nil
+	res := Assets{}
+	json.Unmarshal([]byte(asssetBytes), &res)
+
+	stringSlice := res.Supplements
+ 	buffer := &bytes.Buffer{}
+ 	gob.NewEncoder(buffer).Encode(stringSlice)
+ 	byteSlice := buffer.Bytes()
+
+	return byteSlice, nil
 }
 
 
