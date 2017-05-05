@@ -48,50 +48,60 @@ let deployRequest = {
 };
 
 
-basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-  .then(user => {
-    basic.deploy(user,deployRequest).then(res=> {console.log(res);
-      process.exit(0);
+testDeploy();
+
+
+function testDeploy(){
+  basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
+    .then(user => {
+      basic.deploy(user,deployRequest).then(res=> {console.log(res);
+        process.exit(0);
+      }).catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
     }).catch(err =>{
       console.log(err);
-      process.exit(1);
     });
-  }).catch(err =>{
-    console.log(err);
-  });
+}
+
+function testInvoke(){
+  basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
+    .then(user => {
+      basic.invoke(user,invokeRequest).then(res=> {console.log(res);
+        process.exit(0);
+      }).catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
+    }).catch(err =>{
+      console.log(err);
+    });
+}
+
+function testQueries(){
+  basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
+      .then(testQfunc).then(res =>{
+        console.log("\nthe result is" + res);
+        process.exit(0);
+      })
+      .then(res => {
+          basic.enrollAndRegisterUsers("dummyUser",[])
+              .then(testQfunc).then(res =>{
+            console.log("\nthe result is" + res);
+            process.exit(0);
+          }).catch(err =>{
+            console.log(err);
+            process.exit(1);
+          });
+
+      })
+      .catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
+
+}
 
 
 //
-// basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-//   .then(user => {
-//     basic.invoke(user,invokeRequest).then(res=> {console.log(res);
-//       process.exit(0);
-//     }).catch(err =>{
-//       console.log(err);
-//       process.exit(1);
-//     });
-//   }).catch(err =>{
-//     console.log(err);
-//   })
-
-//
-// basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-//     .then(testQfunc).then(res =>{
-//       console.log("\nthe result is" + res);
-//       process.exit(0);
-//     })
-//     // .then(res => {
-//     //     basic.enrollAndRegisterUsers("dummyUser",[])
-//     //         .then(testQfunc).then(res =>{
-//     //       console.log("\nthe result is" + res);
-//     //       process.exit(0);
-//     //     }).catch(err =>{
-//     //       console.log(err);
-//     //       process.exit(1);
-//     //     });
-//     //
-//     // })
-//     .catch(err =>{
-//       console.log(err);
-//       process.exit(1);
-//     });

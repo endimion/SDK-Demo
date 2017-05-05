@@ -44,6 +44,8 @@ type Assets struct{
 
 
 var EVENT_COUNTER = "event_counter"
+
+
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
@@ -215,9 +217,15 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 // Query callback representing the query of a chaincode
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	if function != "query" {
-		return nil, errors.New("Invalid query function name. Expecting \"query\"")
+	// if function != "query" {
+	// 	return nil, errors.New("Invalid query function name. Expecting \"query\"")
+	// }
+
+	if function == "getSupplements" {
+		return t.getSupplements(stub, args)
 	}
+
+
 	var A string // Entities
 	var err error
 
@@ -254,6 +262,28 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	}else{
 		return nil, errors.New("Only University typeOfUsers may perform this action not " + attrString)
 	}
+}
+
+
+
+func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	// if len(args) != 1 {
+	// 	return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	// }
+
+	// DiplomaSupplement := args[0]
+
+	// Delete the key from the state in ledger
+	// err := stub.DelState(A)
+	// if err != nil {
+	// 	return nil, errors.New("Failed to delete state")
+	// }
+	asssetBytes, err := stub.GetState("assets")
+	if err != nil {
+		jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
+		return nil, errors.New(jsonResp)
+	}
+	return asssetBytes, nil
 }
 
 
