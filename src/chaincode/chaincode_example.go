@@ -140,7 +140,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// }
 
 	if function == "publish"{
-		return t.publish(stub,args)
+		return t.publish(stub, args)
 	}
 
 	var A, B string    // Entities
@@ -369,7 +369,7 @@ func (t *SimpleChaincode) getEmployers(stub shim.ChaincodeStubInterface, args []
 
 // Puts a new DiplomaSupplement to the state
 // args[0] the DiplomaSupplement JSON string
-func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) { {
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}

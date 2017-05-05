@@ -53,9 +53,9 @@ let deployRequest = {
 
 
 
-//testDeploy();
+testDeploy();
 //testQueries2();
-testInvoke2()
+//testInvoke2()
 //testInvoke();
 
 function testDeploy(){
