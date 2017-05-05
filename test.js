@@ -48,8 +48,15 @@ let deployRequest = {
 };
 
 
+
+// actual tests
+
+
+
 //testDeploy();
-testQueries2();
+//testQueries2();
+testInvoke2()
+//testInvoke();
 
 function testDeploy(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
@@ -78,6 +85,34 @@ function testInvoke(){
       console.log(err);
     });
 }
+
+
+
+function testInvoke2(){
+  let _args = ['{"Owner": "me", "University":"ntua","Authorized":[],"Id":""}' ];
+  let req = {
+      // Name (hash) required for invoke
+      chaincodeID: basic.config.chaincodeID,
+      // Function to trigger
+      fcn: "publish",
+      // Parameters for the invoke function
+      args: _args
+  };
+  basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
+    .then(user => {
+      basic.invoke(user,req).then(res=> {console.log(res);
+        process.exit(0);
+      }).catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
+    }).catch(err =>{
+      console.log(err);
+    });
+}
+
+
+
 
 function testQueries(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)

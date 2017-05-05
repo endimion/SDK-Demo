@@ -125,7 +125,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	assets := Assets{Universities: universities, Employers:employers, Supplements:supplements}
 	encodedAssets,err  := json.Marshal(assets)
 	err = stub.PutState("assets", []byte(encodedAssets))
-		if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -376,10 +376,10 @@ func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []strin
 
 	//retrieve the certificate attribute from the transaction
 	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
-	attrString := string(attr)
 	if err != nil{
 		return nil,err
 	}
+	attrString := string(attr)
 
 	if attrString == "University"{
 		//encode into a DiplomaSupplement strct the argument
@@ -402,15 +402,19 @@ func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []strin
 
 		//update the state with the new assets
 		encodedAssets,err  := json.Marshal(assets)
+		if err != nil {
+			return nil, err
+		}
 		err = stub.PutState("assets", []byte(encodedAssets))
-			if err != nil {
+		if err != nil {
 			return nil, err
 		}
 
 		return nil, nil
-	}else{
-		return nil, errors.New("Only University users  may perform this query not " + attrString)
 	}
+
+		return nil, errors.New("Only University users  may perform this query not " + attrString)
+
 }
 
 
