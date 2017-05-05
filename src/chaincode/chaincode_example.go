@@ -139,6 +139,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// 	return t.delete(stub, args)
 	// }
 
+	if function == "publish"{
+		return t.publish(stub,args)
+	}
+
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
 	var X int          // Transaction value
