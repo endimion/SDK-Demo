@@ -22,7 +22,7 @@ import (
 	"strconv"
   "encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	 
+
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -38,14 +38,23 @@ type DiplomaSupplement struct {
 
 // Structure that holds all the assets of the app
 type Assets struct{
-	Supplements []string
+	Supplements []DiplomaSupplement
 	Employers []string
 	Universities []string
 }
 
 type SupplementsAsset struct{
-   Supplements []string
+   Supplements []DiplomaSupplement
 }
+
+type EmployersAsset struct{
+   Employers []string
+}
+
+type UniversitiesAsset struct{
+   Universities []string
+}
+
 
 var EVENT_COUNTER = "event_counter"
 
@@ -57,7 +66,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var testSupplement  DiplomaSupplement // Fake  Diploma supplement
 
 	// "list", slice in golang, that will hold the DiplomaSupplements as strings
-	var supplements = make([]string,0)
+	var supplements = make([]DiplomaSupplement,0)
 	// slice, that will hold the eIDs of the employers as strings
 	var employers = make([]string,0)
 	// slice, that will hold the eIDs of the universities as strings
@@ -100,6 +109,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	//add the diploma supplement to the state of the blockchain
 	authorizedUsers := make([]string,0)
 	testSupplement = DiplomaSupplement{Owner: "me", University:"ntua", Authorized:authorizedUsers}
+
+	supplements = append(supplements,testSupplement)
+
 	jsonDip, err := json.Marshal(testSupplement)
 	if err != nil {
 			fmt.Println("error:", err)
@@ -229,6 +241,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return t.getSupplements(stub, args)
 	}
 
+	if function == "getEmployers"{
+		return t.getEmployers(stub,args)
+	}
+
 
 	var A string // Entities
 	var err error
@@ -269,9 +285,18 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 
-
+/**
+	Get all supplements that belong to a user, if its type is Student
+	Or all supplements issued by that user, if its type is University
+**/
 func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
+	}
+  eID := args[0]
+
+	//get all supplements from the state
 	assetBytes, err := stub.GetState("assets")
 	if err != nil {
 		jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
@@ -281,10 +306,58 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 	json.Unmarshal([]byte(assetBytes), &res)
 
 	supps:= SupplementsAsset{Supplements:res.Supplements}
-	encodedSupps,_ := json.Marshal(supps)
+	matchingSupplements := make([]DiplomaSupplement,0)
 
-	return []byte(encodedSupps), nil
+	//retrieve the certificate attribute from the transaction
+	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
+  attrString := string(attr)
+
+	if attrString == "University"{
+		for _,element := range supps.Supplements {
+			// element is the element from someSlice for where we are
+			if element.University == eID {
+				matchingSupplements = append(matchingSupplements,element)
+			}
+		}
+		encodedSupps,_ := json.Marshal(matchingSupplements)
+		return []byte(encodedSupps), nil
+	}
+
+
+	if attrString == "Student"{
+		for _,element := range supps.Supplements {
+			// element is the element from someSlice for where we are
+			if element.Owner == eID {
+				matchingSupplements = append(matchingSupplements,element)
+			}
+		}
+		encodedSupps,_ := json.Marshal(matchingSupplements)
+		return []byte(encodedSupps), nil
+	}
+
+	return nil, errors.New("Only University or Students may perform this query not " + attrString)
+
 }
+
+/**
+	Get all the employers Ids of the blockchain
+**/
+func (t *SimpleChaincode) getEmployers(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	assetBytes, err := stub.GetState("assets")
+	if err != nil {
+		jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
+		return nil, errors.New(jsonResp)
+	}
+	res := Assets{}
+	json.Unmarshal([]byte(assetBytes), &res)
+
+	emps:= EmployersAsset{Employers:res.Employers}
+	encodedEmpl,_ := json.Marshal(emps)
+
+	return []byte(encodedEmpl), nil
+}
+
+
 
 
 
