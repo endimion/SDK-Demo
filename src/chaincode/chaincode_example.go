@@ -32,7 +32,16 @@ type DiplomaSupplement struct {
 		Owner string
 		University string
 		Authorized []string
+		Id string
 }
+
+// Structure that holds all the assets of the app
+type Assets struct{
+	Supplements []string
+	Employers []string
+	Universities []string
+}
+
 
 var EVENT_COUNTER = "event_counter"
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -40,6 +49,15 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var Aval, Bval int // Asset holdings
 	var err error
 	var testSupplement  DiplomaSupplement // Fake  Diploma supplement
+
+	// "list", slice in golang, that will hold the DiplomaSupplements as strings
+	var supplements = make([]string,0)
+	// slice, that will hold the eIDs of the employers as strings
+	var employers = make([]string,0)
+	// slice, that will hold the eIDs of the universities as strings
+	var universities = make([]string,0)
+
+
 
 	if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
@@ -68,7 +86,8 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
-        err = stub.PutState(EVENT_COUNTER, []byte("1"))
+
+	err = stub.PutState(EVENT_COUNTER, []byte("1"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,17 +104,22 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	return nil, err
 	}
 
-
+	assets := Assets{Universities: universities, Employers:employers, Supplements:supplements}
+	encodedAssets,err  := json.Marshal(assets)
+	err = stub.PutState("assets", []byte(encodedAssets))
+		if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }
 
 // Transaction makes payment of X units from A to B
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	if function == "delete" {
-		// Deletes an entity from its state
-		return t.delete(stub, args)
-	}
+	// if function == "delete" {
+	// 	// Deletes an entity from its state
+	// 	return t.delete(stub, args)
+	// }
 
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
@@ -171,23 +195,23 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
         }
 	return nil, nil
 }
-
-// Deletes an entity from state
-func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	}
-
-	A := args[0]
-
-	// Delete the key from the state in ledger
-	err := stub.DelState(A)
-	if err != nil {
-		return nil, errors.New("Failed to delete state")
-	}
-
-	return nil, nil
-}
+//
+// // Deletes an entity from state
+// func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+// 	if len(args) != 1 {
+// 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+// 	}
+//
+// 	A := args[0]
+//
+// 	// Delete the key from the state in ledger
+// 	err := stub.DelState(A)
+// 	if err != nil {
+// 		return nil, errors.New("Failed to delete state")
+// 	}
+//
+// 	return nil, nil
+// }
 
 // Query callback representing the query of a chaincode
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -230,11 +254,37 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	}else{
 		return nil, errors.New("Only University typeOfUsers may perform this action not " + attrString)
 	}
-
-
-
-
 }
+
+
+
+
+
+// Puts a new DiplomaSupplement to the state
+// args[0] the DiplomaSupplement JSON string
+func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	}
+
+	// DiplomaSupplement := args[0]
+
+	// Delete the key from the state in ledger
+	// err := stub.DelState(A)
+	// if err != nil {
+	// 	return nil, errors.New("Failed to delete state")
+	// }
+
+	return nil, nil
+}
+
+
+
+
+
+
+
+
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
