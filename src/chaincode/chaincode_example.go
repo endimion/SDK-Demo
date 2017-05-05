@@ -370,15 +370,43 @@ func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []strin
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
 
-	// DiplomaSupplement := args[0]
+	//retrieve the certificate attribute from the transaction
+	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
+	attrString := string(attr)
+	if err != nil{
+		return nil,err
+	}
 
-	// Delete the key from the state in ledger
-	// err := stub.DelState(A)
-	// if err != nil {
-	// 	return nil, errors.New("Failed to delete state")
-	// }
+	if attrString == "University"{
+		//encode into a DiplomaSupplement strct the argument
+		suplementString := args[0]
+		suplement := DiplomaSupplement{}
+	  json.Unmarshal([]byte(suplementString), &suplement)
 
-	return nil, nil
+		//get the assets from the state
+		assetBytes, err := stub.GetState("assets")
+		if err != nil {
+			jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
+			return nil, errors.New(jsonResp)
+		}
+		assets := Assets{}
+		json.Unmarshal([]byte(assetBytes), &assets)
+		//apend the received supplement to the assets
+		supplementSlice := assets.Supplements
+		supplementSlice = append(supplementSlice,suplement)
+		assets.Supplements = supplementSlice
+
+		//update the state with the new assets
+		encodedAssets,err  := json.Marshal(assets)
+		err = stub.PutState("assets", []byte(encodedAssets))
+			if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	}else{
+		return nil, errors.New("Only University users  may perform this query not " + attrString)
+	}
 }
 
 

@@ -106,7 +106,8 @@ function testQueries(){
 
 
 function testQueries2(){
-  let testQ2 = new ChainCodeQuery(attributes, args, basic.config.chaincodeID,"getSupplements",basic.query);
+  let _args = ["ntua"];
+  let testQ2 = new ChainCodeQuery(attributes, _args, basic.config.chaincodeID,"getSupplements",basic.query);
   let testQfunc2 = testQ2.makeQuery.bind(testQ2);
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
       .then(testQfunc2).then(res =>{
@@ -114,10 +115,13 @@ function testQueries2(){
         process.exit(0);
       })
       .catch(err =>{
+        console.log("AN ERROR OCCURED!!!");
         console.log(err);
+        if(err.toString().indexOf("Security handshake") > 0){
+          console.log("there was a handshake error");
+        }
         process.exit(1);
       });
-
 }
 
 //
