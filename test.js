@@ -102,7 +102,7 @@ function testInvoke2(){
       //pass explicit attributes to teh query
       attrs: _invAttr
   };
-  basic.enrollAndRegisterUsers("testUser",_enrollAttr)
+  basic.enrollAndRegisterUsers("uni1",_enrollAttr)
     .then(user => {
       basic.invoke(user,req).then(res=> {console.log(res);
         process.exit(0);

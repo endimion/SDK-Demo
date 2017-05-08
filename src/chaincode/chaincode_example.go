@@ -143,10 +143,6 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.publish(stub, args)
 	}
 
-	if function == "publish2"{
-		return t.publish2(stub, args)
-	}
-
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
 	var X int          // Transaction value
@@ -316,12 +312,12 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 	supps:= SupplementsAsset{Supplements:res.Supplements}
 	matchingSupplements := make([]DiplomaSupplement,0)
 
-	//retrieve the certificate attribute from the transaction
-	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
-  attrString := string(attr)
+	// Here the ABAC API is called to verify the attributes, only then will the new
+	// supplement be added
+	isUniversity, _ := stub.VerifyAttribute("typeOfUser", []byte("University"))
+	isStudent, _ := stub.VerifyAttribute("typeOfUser", []byte("Student"))
 
-	isOk, _ := stub.VerifyAttribute("typeOfUser", []byte("University")) // Here the ABAC API is called to verify the attribute, just if the value is verified the counter will be incremented.
-  if isOk {
+  if isUniversity {
 		for _,element := range supps.Supplements {
 			// element is the element from someSlice for where we are
 			if element.University == eID {
@@ -333,7 +329,7 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 	}
 
 
-	if attrString == "Student"{
+	if isStudent{
 		for _,element := range supps.Supplements {
 			// element is the element from someSlice for where we are
 			if element.Owner == eID {
@@ -344,7 +340,7 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 		return []byte(encodedSupps), nil
 	}
 
-	return nil, errors.New("Only University or Students may perform this query not " + attrString)
+	return nil, errors.New("Only University or Students may perform this query")
 
 }
 
@@ -379,71 +375,18 @@ func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []strin
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
 
-	//retrieve the certificate attribute from the transaction
-	// attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
-	// if err != nil{
-	// 	return nil,err
-	// }
-	// attrString := string(attr)
-	//
-	// if attrString == "University"{
-		//encode into a DiplomaSupplement strct the argument
-		suplementString := args[0]
-		suplement := DiplomaSupplement{}
-	  json.Unmarshal([]byte(suplementString), &suplement)
 
-		//get the assets from the state
-		assetBytes, err := stub.GetState("assets")
-		if err != nil {
-			jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
-			return nil, errors.New(jsonResp)
-		}
-		assets := Assets{}
-		json.Unmarshal([]byte(assetBytes), &assets)
-		//apend the received supplement to the assets
-		supplementSlice := assets.Supplements
-		supplementSlice = append(supplementSlice,suplement)
-		assets.Supplements = supplementSlice
+	//encode into a DiplomaSupplement strct the argument
+	suplementString := args[0]
+	suplement := DiplomaSupplement{}
+	json.Unmarshal([]byte(suplementString), &suplement)
 
-		//update the state with the new assets
-		encodedAssets,err  := json.Marshal(assets)
-		if err != nil {
-			return nil, err
-		}
-		err = stub.PutState("assets", []byte(encodedAssets))
-		if err != nil {
-			return nil, err
-		}
+	// Here the ABAC API is called to verify the attributes, only then will the new
+	// supplement be added
+	isUniversity, _ := stub.VerifyAttribute("typeOfUser", []byte("University"))
+	isIssuedBySender, _ := stub.VerifyAttribute("eID", []byte(suplement.University))
 
-		return nil, nil
-	// }
-
-		// return nil, errors.New("Only University users  may perform this query not " + attrString)
-
-}
-
-
-// Puts a new DiplomaSupplement to the state
-// args[0] the DiplomaSupplement JSON string
-func (t *SimpleChaincode) publish2(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	}
-
-	//retrieve the certificate attribute from the transaction
-	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
-	if  err != nil {
-		return nil,err
-	}
-
-  attrString := string(attr)
-
-	if attrString == "University"{
-		//encode into a DiplomaSupplement strct the argument
-		suplementString := args[0]
-		suplement := DiplomaSupplement{}
-	  json.Unmarshal([]byte(suplementString), &suplement)
-
+	if isUniversity && isIssuedBySender{
 		//get the assets from the state
 		assetBytes, err := stub.GetState("assets")
 		if err != nil {
