@@ -471,12 +471,12 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 			supToUpdate.Authorized = append(supToUpdate.Authorized,newUser)
 
-			// //delete the old version of the supplement
-			// supplementSlice = append(supplementSlice[:position],supplementSlice[:position +1]...)
-			// //add the new supplement
-			// supplementSlice = append(supplementSlice,supToUpdate)
-			//
-			// assets.Supplements = supplementSlice
+			//delete the old version of the supplement
+			supplementSlice = removeFromSlice(supplementSlice,position)
+			//add the new supplement
+			supplementSlice = append(supplementSlice,supToUpdate)
+
+			assets.Supplements = supplementSlice
 
 			//update the state with the new assets
 			encodedAssets,err  := json.Marshal(assets)
@@ -501,3 +501,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 			fmt.Printf("Error starting Simple chaincode: %s", err)
 		}
 	}
+
+
+
+func removeFromSlice(s []DiplomaSupplement, i int) []DiplomaSupplement {
+    s[len(s)-1], s[i] = s[i], s[len(s)-1]
+    return s[:len(s)-1]
+}
