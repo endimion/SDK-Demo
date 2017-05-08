@@ -89,20 +89,21 @@ function testInvoke(){
 
 
 function testInvoke2(){
-  let _args = ['{"Owner": "me", "University":"ntua","Authorized":[],"Id":""}' ];
-  let _enrollAttr = [{name:'typeOfUser',value:'University'}];
-  let _invAttr = ['typeOfUser'];
+  let _id =  "1234";//Math.floor((Math.random() * 1000) + 1);
+  let _args = ['{"Owner": "studentEid", "University":"ntua","Authorized":[],"Id":"'+_id+'"}' ];
+  let _enrollAttr = [{name:'typeOfUser',value:'University'},{name:"eID",value:"ntua"}];
+  let _invAttr = ['typeOfUser','eID'];
   let req = {
       // Name (hash) required for invoke
       chaincodeID: basic.config.chaincodeID,
       // Function to trigger
-      fcn: "publish2",
+      fcn: "publish",
       // Parameters for the invoke function
       args: _args,
       //pass explicit attributes to teh query
       attrs: _invAttr
   };
-  basic.enrollAndRegisterUsers("uni1",_enrollAttr)
+  basic.enrollAndRegisterUsers("ntuaTestUser",_enrollAttr)
     .then(user => {
       basic.invoke(user,req).then(res=> {console.log(res);
         process.exit(0);
@@ -162,5 +163,41 @@ function testQueries2(){
         process.exit(1);
       });
 }
+
+
+
+
+
+
+function testInvoke3(){
+  let employer = "employerEid";
+  let supId = "1234";
+
+  let _args = [supId,owner];
+  let _enrollAttr = [{name:'typeOfUser',value:'Student'},{name:"eID",value:"studentEid"}];
+  let _invAttr = ['typeOfUser','eID'];
+  let req = {
+      // Name (hash) required for invoke
+      chaincodeID: basic.config.chaincodeID,
+      // Function to trigger
+      fcn: "addAuthorizedUser",
+      // Parameters for the invoke function
+      args: _args,
+      //pass explicit attributes to teh query
+      attrs: _invAttr
+  };
+  basic.enrollAndRegisterUsers("testStudentUser",_enrollAttr)
+    .then(user => {
+      basic.invoke(user,req).then(res=> {console.log(res);
+        process.exit(0);
+      }).catch(err =>{
+        console.log(err);
+        process.exit(1);
+      });
+    }).catch(err =>{
+      console.log(err);
+    });
+}
+
 
 //
