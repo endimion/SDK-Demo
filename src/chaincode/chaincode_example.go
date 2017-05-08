@@ -320,7 +320,8 @@ func (t *SimpleChaincode) getSupplements(stub shim.ChaincodeStubInterface, args 
 	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
   attrString := string(attr)
 
-	if attrString == "University"{
+	isOk, _ := stub.VerifyAttribute("typeOfUser", []byte("University")) // Here the ABAC API is called to verify the attribute, just if the value is verified the counter will be incremented.
+  if isOk {
 		for _,element := range supps.Supplements {
 			// element is the element from someSlice for where we are
 			if element.University == eID {

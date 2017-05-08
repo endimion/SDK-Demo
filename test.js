@@ -55,7 +55,7 @@ let deployRequest = {
 
 // testDeploy();
 testQueries2();
-// testInvoke2()
+ // testInvoke2()
 //testInvoke();
 
 function testDeploy(){
@@ -90,16 +90,17 @@ function testInvoke(){
 
 function testInvoke2(){
   let _args = ['{"Owner": "me", "University":"ntua","Authorized":[],"Id":""}' ];
-  let _enrollAttr = [{name:'typeOfUser',value:'Student'}];
+  let _enrollAttr = [{name:'typeOfUser',value:'University'}];
+  let _invAttr = ['typeOfUser'];
   let req = {
       // Name (hash) required for invoke
       chaincodeID: basic.config.chaincodeID,
       // Function to trigger
-      fcn: "publish",
+      fcn: "publish2",
       // Parameters for the invoke function
       args: _args,
       //pass explicit attributes to teh query
-      attrs: attributes
+      attrs: _invAttr
   };
   basic.enrollAndRegisterUsers("testUser",_enrollAttr)
     .then(user => {
