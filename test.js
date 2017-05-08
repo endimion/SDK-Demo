@@ -53,9 +53,10 @@ let deployRequest = {
 
 
 
-// testDeploy();
+ // testDeploy();
 testQueries2();
  // testInvoke2()
+  // testInvoke3()
 //testInvoke();
 
 function testDeploy(){
@@ -89,7 +90,7 @@ function testInvoke(){
 
 
 function testInvoke2(){
-  let _id =  "1234";//Math.floor((Math.random() * 1000) + 1);
+  let _id =  "12345";//Math.floor((Math.random() * 1000) + 1);
   let _args = ['{"Owner": "studentEid", "University":"ntua","Authorized":[],"Id":"'+_id+'"}' ];
   let _enrollAttr = [{name:'typeOfUser',value:'University'},{name:"eID",value:"ntua"}];
   let _invAttr = ['typeOfUser','eID'];
@@ -171,9 +172,9 @@ function testQueries2(){
 
 function testInvoke3(){
   let employer = "employerEid";
-  let supId = "1234";
+  let supId = "12345";
 
-  let _args = [supId,owner];
+  let _args = [supId,employer];
   let _enrollAttr = [{name:'typeOfUser',value:'Student'},{name:"eID",value:"studentEid"}];
   let _invAttr = ['typeOfUser','eID'];
   let req = {
@@ -186,7 +187,7 @@ function testInvoke3(){
       //pass explicit attributes to teh query
       attrs: _invAttr
   };
-  basic.enrollAndRegisterUsers("testStudentUser",_enrollAttr)
+  basic.enrollAndRegisterUsers("std01",_enrollAttr)
     .then(user => {
       basic.invoke(user,req).then(res=> {console.log(res);
         process.exit(0);
@@ -196,6 +197,7 @@ function testInvoke3(){
       });
     }).catch(err =>{
       console.log(err);
+        process.exit(1);
     });
 }
 

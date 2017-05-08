@@ -471,12 +471,12 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 			supToUpdate.Authorized = append(supToUpdate.Authorized,newUser)
 
-			//delete the old version of the supplement
-			supplementSlice = append(supplementSlice[:position],supplementSlice[:position +1]...)
-			//add the new supplement
-			supplementSlice = append(supplementSlice,supToUpdate)
-
-			assets.Supplements = supplementSlice
+			// //delete the old version of the supplement
+			// supplementSlice = append(supplementSlice[:position],supplementSlice[:position +1]...)
+			// //add the new supplement
+			// supplementSlice = append(supplementSlice,supToUpdate)
+			//
+			// assets.Supplements = supplementSlice
 
 			//update the state with the new assets
 			encodedAssets,err  := json.Marshal(assets)
