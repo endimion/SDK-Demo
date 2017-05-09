@@ -254,6 +254,9 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return t.getEmployers(stub,args)
 	}
 
+	if function == "getSupplementById"{
+		return t.getSupplementById(stub,args)
+	}
 
 	var A string // Entities
 	var err error
@@ -368,143 +371,198 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	}
 
 
+	/**
+	Get the supplement by the given id, if the user
+	belongs to the Authorized Users for the supplemnt, or the user
+	is the owner of the supplement
+	**/
+	func (t *SimpleChaincode) getSupplementById(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
-
-
-
-
-	// Puts a new DiplomaSupplement to the state
-	// args[0] the DiplomaSupplement JSON string
-	func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 		if len(args) != 1 {
-			return nil, errors.New("Incorrect number of arguments. Expecting 1")
+			return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 		}
-
-
-		//encode into a DiplomaSupplement strct the argument
-		suplementString := args[0]
-		suplement := DiplomaSupplement{}
-		json.Unmarshal([]byte(suplementString), &suplement)
-
-		// Here the ABAC API is called to verify the attributes, only then will the new
-		// supplement be added
-		isUniversity, _ := stub.VerifyAttribute("typeOfUser", []byte("University"))
-		isIssuedBySender, _ := stub.VerifyAttribute("eID", []byte(suplement.University))
-
-		if isUniversity && isIssuedBySender{
-			//get the assets from the state
-			assetBytes, err := stub.GetState("assets")
-			if err != nil {
-				jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
-				return nil, errors.New(jsonResp)
-			}
-			assets := Assets{}
-			json.Unmarshal([]byte(assetBytes), &assets)
-			//apend the received supplement to the assets
-			supplementSlice := assets.Supplements
-			supplementSlice = append(supplementSlice,suplement)
-			assets.Supplements = supplementSlice
-
-			//update the state with the new assets
-			encodedAssets,err  := json.Marshal(assets)
-			if err != nil {
-				return nil, err
-			}
-			err = stub.PutState("assets", []byte(encodedAssets))
-			if err != nil {
-				return nil, err
-			}
-		}
-		return nil, nil
-		// }
-
-		// return nil, errors.New("Only University users  may perform this query not " + attrString)
-
-	}
-
-
-
-
-	// Updates a DiplomaSupplement, passed by its id, (args[0]) such that
-	// it can be viewed by the user args[1]
-	func (t *SimpleChaincode) addAuthorizedUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-		if len(args) != 2 {
-			return nil, errors.New("Incorrect number of arguments. Expecting 2")
-		}
-		//the DiplomaSupplement id
 		suplementId := args[0]
-		//the user that should be allowed to view the supplement
-		newUser := args[1]
 
-
-		//get the assets from the state
 		assetBytes, err := stub.GetState("assets")
 		if err != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
 			return nil, errors.New(jsonResp)
 		}
-		//get the supplements from the assets
 		assets := Assets{}
 		json.Unmarshal([]byte(assetBytes), &assets)
-		supplementSlice := assets.Supplements
 
-		supToUpdate := DiplomaSupplement{}
-		position := -1
-		for index,element := range supplementSlice {
-			// element is the element from someSlice for where we are
-			if element.Id == suplementId {
-				supToUpdate = element
-				position = index
-			}
-		}
-		if position == -1 {
-			return nil, errors.New("No supplement found with the given ID " + suplementId)
+		supplement, position := findSupplementInSlice(assets.Supplements, suplementId)
+		if position == -1{
+			return nil, errors.New("No Supplement Found with the given ID")
 		}
 
+		authorizedUsers   := supplement.Authorized
+		isAllowed := false
+		eid, err := stub.ReadCertAttribute("eID")
+		eidString := string(eid)
 
-		// Here the ABAC API is called to verify the attributes, only then will the
-		// supplement be updated
-		isStudent, _ := stub.VerifyAttribute("typeOfUser", []byte("Student"))
-		isOwner, _ := stub.VerifyAttribute("eID", []byte(supToUpdate.Owner))
-
-		if isStudent && isOwner{
-
-			supToUpdate.Authorized = append(supToUpdate.Authorized,newUser)
-
-			//delete the old version of the supplement
-			supplementSlice = removeFromSlice(supplementSlice,position)
-			//add the new supplement
-			supplementSlice = append(supplementSlice,supToUpdate)
-
-			assets.Supplements = supplementSlice
-
-			//update the state with the new assets
-			encodedAssets,err  := json.Marshal(assets)
-			if err != nil {
-				return nil, err
+		if eidString == supplement.Owner{
+			isAllowed = true
+			}	else{
+				for _,element := range authorizedUsers {
+					// element is the element from someSlice for where we are
+					if eidString == element {
+						isAllowed = true
+					}
+				}
 			}
-			err = stub.PutState("assets", []byte(encodedAssets))
-			if err != nil {
-				return nil, err
+
+			if isAllowed{
+				encodedResult,err  := json.Marshal(assets)
+				if err != nil {
+					return nil, err
+				}
+				return []byte(encodedResult), nil
+			}else{
+				return nil, errors.New("User not Authorized to see this supplement")
 			}
-		}
-		return nil, nil
+
 	}
 
 
 
 
 
-	func main() {
-		err := shim.Start(new(SimpleChaincode))
-		if err != nil {
-			fmt.Printf("Error starting Simple chaincode: %s", err)
-		}
-	}
+
+			// Puts a new DiplomaSupplement to the state
+			// args[0] the DiplomaSupplement JSON string
+			func (t *SimpleChaincode) publish(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+				if len(args) != 1 {
+					return nil, errors.New("Incorrect number of arguments. Expecting 1")
+				}
+
+
+				//encode into a DiplomaSupplement strct the argument
+				suplementString := args[0]
+				suplement := DiplomaSupplement{}
+				json.Unmarshal([]byte(suplementString), &suplement)
+
+				// Here the ABAC API is called to verify the attributes, only then will the new
+				// supplement be added
+				isUniversity, _ := stub.VerifyAttribute("typeOfUser", []byte("University"))
+				isIssuedBySender, _ := stub.VerifyAttribute("eID", []byte(suplement.University))
+
+				if isUniversity && isIssuedBySender{
+					//get the assets from the state
+					assetBytes, err := stub.GetState("assets")
+					if err != nil {
+						jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
+						return nil, errors.New(jsonResp)
+					}
+					assets := Assets{}
+					json.Unmarshal([]byte(assetBytes), &assets)
+					//apend the received supplement to the assets
+					supplementSlice := assets.Supplements
+					supplementSlice = append(supplementSlice,suplement)
+					assets.Supplements = supplementSlice
+
+					//update the state with the new assets
+					encodedAssets,err  := json.Marshal(assets)
+					if err != nil {
+						return nil, err
+					}
+					err = stub.PutState("assets", []byte(encodedAssets))
+					if err != nil {
+						return nil, err
+					}
+				}
+				return nil, nil
+				// }
+
+				// return nil, errors.New("Only University users  may perform this query not " + attrString)
+
+			}
 
 
 
-func removeFromSlice(s []DiplomaSupplement, i int) []DiplomaSupplement {
-    s[len(s)-1], s[i] = s[i], s[len(s)-1]
-    return s[:len(s)-1]
-}
+
+			// Updates a DiplomaSupplement, passed by its id, (args[0]) such that
+			// it can be viewed by the user args[1]
+			func (t *SimpleChaincode) addAuthorizedUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+				if len(args) != 2 {
+					return nil, errors.New("Incorrect number of arguments. Expecting 2")
+				}
+				//the DiplomaSupplement id
+				suplementId := args[0]
+				//the user that should be allowed to view the supplement
+				newUser := args[1]
+
+
+				//get the assets from the state
+				assetBytes, err := stub.GetState("assets")
+				if err != nil {
+					jsonResp := "{\"Error\":\"Failed to get state for key \"assets\"}"
+					return nil, errors.New(jsonResp)
+				}
+				//get the supplements from the assets
+				assets := Assets{}
+				json.Unmarshal([]byte(assetBytes), &assets)
+				supplementSlice := assets.Supplements
+
+				supToUpdate , position := findSupplementInSlice(supplementSlice, suplementId)
+				if position == -1 {
+					return nil, errors.New("No supplement found with the given ID " + suplementId)
+				}
+
+
+				// Here the ABAC API is called to verify the attributes, only then will the
+				// supplement be updated
+				isStudent, _ := stub.VerifyAttribute("typeOfUser", []byte("Student"))
+				isOwner, _ := stub.VerifyAttribute("eID", []byte(supToUpdate.Owner))
+
+				if isStudent && isOwner{
+
+					supToUpdate.Authorized = append(supToUpdate.Authorized,newUser)
+
+					//delete the old version of the supplement
+					supplementSlice = removeFromSlice(supplementSlice,position)
+					//add the new supplement
+					supplementSlice = append(supplementSlice,supToUpdate)
+
+					assets.Supplements = supplementSlice
+
+					//update the state with the new assets
+					encodedAssets,err  := json.Marshal(assets)
+					if err != nil {
+						return nil, err
+					}
+					err = stub.PutState("assets", []byte(encodedAssets))
+					if err != nil {
+						return nil, err
+					}
+				}
+				return nil, nil
+			}
+
+
+			func findSupplementInSlice(s []DiplomaSupplement, supplementId string) (res DiplomaSupplement, pos int){
+				pos = -1
+				for index,element := range s {
+					// element is the element from someSlice for where we are
+					if element.Id == supplementId {
+						res = element
+						pos = index
+					}
+				}
+				return res, pos
+			}
+
+
+			func removeFromSlice(s []DiplomaSupplement, i int) []DiplomaSupplement {
+				s[len(s)-1], s[i] = s[i], s[len(s)-1]
+				return s[:len(s)-1]
+			}
+
+
+
+			func main() {
+				err := shim.Start(new(SimpleChaincode))
+				if err != nil {
+					fmt.Printf("Error starting Simple chaincode: %s", err)
+				}
+			}

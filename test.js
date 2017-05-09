@@ -18,33 +18,33 @@ let testQfunc = testQ.makeQuery.bind(testQ);
 
 let armgnts = ["a","b","10"];
 let invokeRequest = {
-    // Name (hash) required for invoke
-    chaincodeID: basic.config.chaincodeID,
-    // Function to trigger
-    fcn: basic.config.config.invokeRequest.functionName,
-    // Parameters for the invoke function
-    args: armgnts
+  // Name (hash) required for invoke
+  chaincodeID: basic.config.chaincodeID,
+  // Function to trigger
+  fcn: basic.config.config.invokeRequest.functionName,
+  // Parameters for the invoke function
+  args: armgnts
 };
 
 
 let depArgs = [
-   "a",
-   "100",
-   "b",
-   "200"
+  "a",
+  "100",
+  "b",
+  "200"
 ];
 let depFunCName = "init";
 let chaincodePath = "chaincode";
 let certPath  = "";
 
 let deployRequest = {
-    // Function to trigger
-    fcn:depFunCName,
-    // Arguments to the initializing function
-    args: depArgs,
-    chaincodePath: chaincodePath,
-    // the location where the startup and HSBN store the certificates
-    certificatePath: basic.config.network.cert_path
+  // Function to trigger
+  fcn:depFunCName,
+  // Arguments to the initializing function
+  args: depArgs,
+  chaincodePath: chaincodePath,
+  // the location where the startup and HSBN store the certificates
+  certificatePath: basic.config.network.cert_path
 };
 
 
@@ -53,38 +53,38 @@ let deployRequest = {
 
 
 
- // testDeploy();
-testQueries2();
- // testInvoke2()
-  // testInvoke3()
+testDeploy();
+// testQueries2();
+// testInvoke2()
+// testInvoke3()
 //testInvoke();
 
 function testDeploy(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-    .then(user => {
-      basic.deploy(user,deployRequest).then(res=> {console.log(res);
-        process.exit(0);
-      }).catch(err =>{
-        console.log(err);
-        process.exit(1);
-      });
+  .then(user => {
+    basic.deploy(user,deployRequest).then(res=> {console.log(res);
+      process.exit(0);
     }).catch(err =>{
       console.log(err);
+      process.exit(1);
     });
+  }).catch(err =>{
+    console.log(err);
+  });
 }
 
 function testInvoke(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-    .then(user => {
-      basic.invoke(user,invokeRequest).then(res=> {console.log(res);
-        process.exit(0);
-      }).catch(err =>{
-        console.log(err);
-        process.exit(1);
-      });
+  .then(user => {
+    basic.invoke(user,invokeRequest).then(res=> {console.log(res);
+      process.exit(0);
     }).catch(err =>{
       console.log(err);
+      process.exit(1);
     });
+  }).catch(err =>{
+    console.log(err);
+  });
 }
 
 
@@ -95,26 +95,26 @@ function testInvoke2(){
   let _enrollAttr = [{name:'typeOfUser',value:'University'},{name:"eID",value:"ntua"}];
   let _invAttr = ['typeOfUser','eID'];
   let req = {
-      // Name (hash) required for invoke
-      chaincodeID: basic.config.chaincodeID,
-      // Function to trigger
-      fcn: "publish",
-      // Parameters for the invoke function
-      args: _args,
-      //pass explicit attributes to teh query
-      attrs: _invAttr
+    // Name (hash) required for invoke
+    chaincodeID: basic.config.chaincodeID,
+    // Function to trigger
+    fcn: "publish",
+    // Parameters for the invoke function
+    args: _args,
+    //pass explicit attributes to teh query
+    attrs: _invAttr
   };
   basic.enrollAndRegisterUsers("ntuaTestUser",_enrollAttr)
-    .then(user => {
-      basic.invoke(user,req).then(res=> {console.log(res);
-        process.exit(0);
-      }).catch(err =>{
-        console.log(err);
-        process.exit(1);
-      });
+  .then(user => {
+    basic.invoke(user,req).then(res=> {console.log(res);
+      process.exit(0);
     }).catch(err =>{
       console.log(err);
+      process.exit(1);
     });
+  }).catch(err =>{
+    console.log(err);
+  });
 }
 
 
@@ -122,25 +122,25 @@ function testInvoke2(){
 
 function testQueries(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-      .then(testQfunc).then(res =>{
-        console.log("\nthe result is" + res);
-        process.exit(0);
-      })
-      .then(res => {
-          basic.enrollAndRegisterUsers("dummyUser",[])
-              .then(testQfunc).then(res =>{
-            console.log("\nthe result is" + res);
-            process.exit(0);
-          }).catch(err =>{
-            console.log(err);
-            process.exit(1);
-          });
+  .then(testQfunc).then(res =>{
+    console.log("\nthe result is" + res);
+    process.exit(0);
+  })
+  .then(res => {
+    basic.enrollAndRegisterUsers("dummyUser",[])
+    .then(testQfunc).then(res =>{
+      console.log("\nthe result is" + res);
+      process.exit(0);
+    }).catch(err =>{
+      console.log(err);
+      process.exit(1);
+    });
 
-      })
-      .catch(err =>{
-        console.log(err);
-        process.exit(1);
-      });
+  })
+  .catch(err =>{
+    console.log(err);
+    process.exit(1);
+  });
 
 }
 
@@ -151,54 +151,74 @@ function testQueries2(){
   let testQ2 = new ChainCodeQuery(attributes, _args, basic.config.chaincodeID,"getSupplements",basic.query);
   let testQfunc2 = testQ2.makeQuery.bind(testQ2);
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
-      .then(testQfunc2).then(res =>{
-        console.log("\nthe result is" + res);
-        process.exit(0);
-      })
-      .catch(err =>{
-        console.log("AN ERROR OCCURED!!!");
-        console.log(err);
-        if(err.toString().indexOf("Security handshake") > 0){
-          console.log("there was a handshake error");
-        }
-        process.exit(1);
-      });
+  .then(testQfunc2).then(res =>{
+    console.log("\nthe result is" + res);
+    process.exit(0);
+  })
+  .catch(err =>{
+    console.log("AN ERROR OCCURED!!!");
+    console.log(err);
+    if(err.toString().indexOf("Security handshake") > 0){
+      console.log("there was a handshake error");
+    }
+    process.exit(1);
+  });
+}
+
+
+function testQueries3(){
+  let _args = ["12345"];
+  let _enrollAttr = [{name:'typeOfUser',value:'Student'},{name:"eID",value:"studentEid"}];
+  let _qAttr = ['typeOfUser','eID'];
+
+  let testQ2 = new ChainCodeQuery(_qAttr, _args, basic.config.chaincodeID,"getSupplementById",basic.query);
+  let testQfunc2 = testQ2.makeQuery.bind(testQ2);
+  basic.enrollAndRegisterUsers(basic.config.newUserName,_enrollAttr)
+  .then(testQfunc2).then(res =>{
+    console.log("\nthe result is" + res);
+    process.exit(0);
+  })
+  .catch(err =>{
+    console.log("AN ERROR OCCURED!!!");
+    console.log(err);
+    if(err.toString().indexOf("Security handshake") > 0){
+      console.log("there was a handshake error");
+    }
+    process.exit(1);
+  });
 }
 
 
 
-
-
-
 function testInvoke3(){
-  let employer = "employerEid";
+  let employer = "employerEid2";
   let supId = "12345";
 
   let _args = [supId,employer];
   let _enrollAttr = [{name:'typeOfUser',value:'Student'},{name:"eID",value:"studentEid"}];
   let _invAttr = ['typeOfUser','eID'];
   let req = {
-      // Name (hash) required for invoke
-      chaincodeID: basic.config.chaincodeID,
-      // Function to trigger
-      fcn: "addAuthorizedUser",
-      // Parameters for the invoke function
-      args: _args,
-      //pass explicit attributes to teh query
-      attrs: _invAttr
+    // Name (hash) required for invoke
+    chaincodeID: basic.config.chaincodeID,
+    // Function to trigger
+    fcn: "addAuthorizedUser",
+    // Parameters for the invoke function
+    args: _args,
+    //pass explicit attributes to teh query
+    attrs: _invAttr
   };
   basic.enrollAndRegisterUsers("std01",_enrollAttr)
-    .then(user => {
-      basic.invoke(user,req).then(res=> {console.log(res);
-        process.exit(0);
-      }).catch(err =>{
-        console.log(err);
-        process.exit(1);
-      });
+  .then(user => {
+    basic.invoke(user,req).then(res=> {console.log(res);
+      process.exit(0);
     }).catch(err =>{
       console.log(err);
-        process.exit(1);
+      process.exit(1);
     });
+  }).catch(err =>{
+    console.log(err);
+    process.exit(1);
+  });
 }
 
 
