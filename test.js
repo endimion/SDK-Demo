@@ -53,11 +53,13 @@ let deployRequest = {
 
 
 
-testDeploy();
-// testQueries2();
-// testInvoke2()
-// testInvoke3()
+// testDeploy();
+// testGetSupplements();
+ // testPublishSupplement()
+// testAddAuthorizedUser()
 //testInvoke();
+//
+testGetSupplementById();
 
 function testDeploy(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
@@ -95,7 +97,7 @@ function testInvoke(){
 /**
   Test the publish tx, that deploys a DiplomaSupplement to the blockchain
 **/
-function testInvoke2(){
+function testPublishSupplement(){
   let _id =  "12345";//Math.floor((Math.random() * 1000) + 1);
   let _args = ['{"Owner": "studentEid", "University":"ntua","Authorized":[],"Id":"'+_id+'"}' ];
   let _enrollAttr = [{name:'typeOfUser',value:'University'},{name:"eID",value:"ntua"}];
@@ -126,7 +128,7 @@ function testInvoke2(){
 
 
 /*
-  
+
 */
 function testQueries(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
@@ -154,7 +156,7 @@ function testQueries(){
 
 
 
-function testQueries2(){
+function testGetSupplements(){
   let _args = ["ntua"];
   let testQ2 = new ChainCodeQuery(attributes, _args, basic.config.chaincodeID,"getSupplements",basic.query);
   let testQfunc2 = testQ2.makeQuery.bind(testQ2);
@@ -174,14 +176,14 @@ function testQueries2(){
 }
 
 
-function testQueries3(){
+function testGetSupplementById(){
   let _args = ["12345"];
   let _enrollAttr = [{name:'typeOfUser',value:'Student'},{name:"eID",value:"studentEid"}];
   let _qAttr = ['typeOfUser','eID'];
 
   let testQ2 = new ChainCodeQuery(_qAttr, _args, basic.config.chaincodeID,"getSupplementById",basic.query);
   let testQfunc2 = testQ2.makeQuery.bind(testQ2);
-  basic.enrollAndRegisterUsers(basic.config.newUserName,_enrollAttr)
+  basic.enrollAndRegisterUsers("getSupplementUser",_enrollAttr)
   .then(testQfunc2).then(res =>{
     console.log("\nthe result is" + res);
     process.exit(0);
@@ -198,7 +200,7 @@ function testQueries3(){
 
 
 
-function testInvoke3(){
+function testAddAuthorizedUser(){
   let employer = "employerEid2";
   let supId = "12345";
 

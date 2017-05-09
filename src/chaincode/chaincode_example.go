@@ -413,7 +413,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 			}
 
 			if isAllowed{
-				encodedResult,err  := json.Marshal(assets)
+				encodedResult,err  := json.Marshal(supplement)
 				if err != nil {
 					return nil, err
 				}
