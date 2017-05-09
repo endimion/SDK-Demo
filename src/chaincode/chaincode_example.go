@@ -60,9 +60,9 @@ var EVENT_COUNTER = "event_counter"
 
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
-	var err error
+	// var A, B string    // Entities
+	// var Aval, Bval int // Asset holdings
+	// var err error
 	var testSupplement  DiplomaSupplement // Fake  Diploma supplement
 
 	// "list", slice in golang, that will hold the DiplomaSupplements as strings
@@ -74,38 +74,38 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 
 
-	if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
-	}
+	// if len(args) != 4 {
+	// 	return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	// }
 
 	// Initialize the chaincode
-	A = args[0]
-	Aval, err = strconv.Atoi(args[1])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	B = args[2]
-	Bval, err = strconv.Atoi(args[3])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
+	// A = args[0]
+	// Aval, err = strconv.Atoi(args[1])
+	// if err != nil {
+	// 	return nil, errors.New("Expecting integer value for asset holding")
+	// }
+	// B = args[2]
+	// Bval, err = strconv.Atoi(args[3])
+	// if err != nil {
+	// 	return nil, errors.New("Expecting integer value for asset holding")
+	// }
+	// fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
 
 	// Write the state to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stub.PutState(EVENT_COUNTER, []byte("1"))
-	if err != nil {
-		return nil, err
-	}
+	// err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// err = stub.PutState(EVENT_COUNTER, []byte("1"))
+	// if err != nil {
+	// 	return nil, err
+	// }
 	//add the diploma supplement to the state of the blockchain
 	authorizedUsers := make([]string,0)
 	testSupplement = DiplomaSupplement{Owner: "me", University:"ntua", Authorized:authorizedUsers}
@@ -258,34 +258,34 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return t.getSupplementById(stub,args)
 	}
 
-	var A string // Entities
-	var err error
+	// var A string // Entities
+	// var err error
 
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
-	A = args[0]
+	// A = args[0]
 
 	// Get the state from the ledger
-	Avalbytes, err := stub.GetState(A)
-	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + A + "\"}"
-		return nil, errors.New(jsonResp)
-	}
+	// Avalbytes, err := stub.GetState(A)
+	// if err != nil {
+	// 	jsonResp := "{\"Error\":\"Failed to get state for " + A + "\"}"
+	// 	return nil, errors.New(jsonResp)
+	// }
+	//
+	// if Avalbytes == nil {
+	// 	jsonResp := "{\"Error\":\"Nil amount for " + A + "\"}"
+	// 	return nil, errors.New(jsonResp)
+	// }
+	//
+	// jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
+	// fmt.Printf("Query Response:%s\n", jsonResp)
 
-	if Avalbytes == nil {
-		jsonResp := "{\"Error\":\"Nil amount for " + A + "\"}"
-		return nil, errors.New(jsonResp)
-	}
-
-	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
-	fmt.Printf("Query Response:%s\n", jsonResp)
-
-	attr, err := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
+	attr, _ := stub.ReadCertAttribute("typeOfUser") //callerRole, err := stub.ReadCertAttribute("role")
 	attrString := string(attr)
 	if attrString == "University"{
-		Avalbytes, err = stub.GetState("Test")
+		Avalbytes, err := stub.GetState("Test")
 		if err != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for TEST\"}"
 			return nil, errors.New(jsonResp)

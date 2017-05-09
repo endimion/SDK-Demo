@@ -73,6 +73,10 @@ function testDeploy(){
   });
 }
 
+
+/**
+  Test the default envoke function
+**/
 function testInvoke(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
   .then(user => {
@@ -88,7 +92,9 @@ function testInvoke(){
 }
 
 
-
+/**
+  Test the publish tx, that deploys a DiplomaSupplement to the blockchain
+**/
 function testInvoke2(){
   let _id =  "12345";//Math.floor((Math.random() * 1000) + 1);
   let _args = ['{"Owner": "studentEid", "University":"ntua","Authorized":[],"Id":"'+_id+'"}' ];
@@ -119,7 +125,9 @@ function testInvoke2(){
 
 
 
-
+/*
+  
+*/
 function testQueries(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)
   .then(testQfunc).then(res =>{
