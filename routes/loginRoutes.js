@@ -1,14 +1,22 @@
 
 const express = require('express');
 const router = express.Router()
-const randomstring = require("randomstring");
+
 
 
 
 // define the home page route
 router.get('/', function (req, res) {
   // res.send('Hello World from login');
-  res.render('login',{ title: 'Login', message: 'Login to the DiplomaSupplement WebApp' });
+  if(!req.session.userType  && !req.session.eID){
+      res.render('login',{ title: 'Login', message: 'Login to the DiplomaSupplement WebApp' });
+  }else{
+    //TODO split this for student view
+    res.render('univMainView',{ title: 'Publish a new Diploma Supplement',
+                                message: 'Welcome user: ' + req.session.eID ,
+                                university: req.session.eID});
+  }
+
 })
 
 router.post('/',(req,res) =>{
@@ -20,11 +28,10 @@ router.post('/',(req,res) =>{
     if(userName.toLowerCase() === 'ntua' && password === 'panathinaikos'){
         req.session.userType = 'university';
         req.session.eID = 'ntua';
-      
+
         // res.send("University logged in");
         res.render('univMainView',{ title: 'Publish a new Diploma Supplement',
                                     message: 'Welcome user: ' + req.session.eID ,
-                                    supId: randomstring.generate(10),
                                     university: req.session.eID});
     }
     if(userName.toLowerCase() ==='student'){

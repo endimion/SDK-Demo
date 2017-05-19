@@ -54,12 +54,12 @@ let deployRequest = {
 
 
 // testDeploy();
-// testGetSupplements();
+testGetSupplements();
  // testPublishSupplement()
 // testAddAuthorizedUser()
 // testInvoke();
 //
-testGetSupplementById();
+// testGetSupplementById();
 
 function testDeploy(){
   basic.enrollAndRegisterUsers(basic.config.newUserName,enrollAttr)

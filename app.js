@@ -8,6 +8,9 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); //warning The default server-side session storage, MemoryStore, is purposely not designed for a production environment.
                                             //compatible session stores https://github.com/expressjs/session#compatible-session-stores
+
+const basic = require('./basicFunctions');
+
 // view engine setup
 app.set('views', path.join(__dirname,'views'));
 app.set('view engine', 'pug');
@@ -39,5 +42,15 @@ let server = app.listen(port,(err,res) => {
 
     console.log("Example app listening at http://%s:%s", host, port)
     console.log("server started");
+    //initialize the blocokchain configuration
+    basic.init();
   }
 });
+
+
+// catch the uncaught errors that weren't wrapped in a domain or try catch statement
+// do not use this in modules, but only in applications, as otherwise we could have multiple of these bound
+process.on('uncaughtException', function(err) {
+    // handle the error safely
+    console.log(err)
+})
