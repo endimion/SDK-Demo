@@ -13,11 +13,27 @@ block content
       .col.s12.m6
         each val in supplements
           .card
-            .card-content
+            .card-content#textContent
               span.card-title
               p Owner:  #{val.Owner}
               p University:#{val.University}
               p ID: #{val.Id}
+            .card-content(id="svgContent"+val.Id style={display: 'none', background: 'white',width:'16em'})    
+                  
+            .card-action
+              #userType
+                if userType === 'Student'
+                  a.btn-floating.btn-large.waves-effect.waves-light.red(href="edit/"+val.Id) 
+                    i.material-icons edit
+                else 
+                  a.btn-floating.btn-large.waves-effect.waves-light.red.disabled(href="/edit") 
+                    i.material-icons edit
+                a.btn-floating.btn-large.waves-effect.waves-light.red(style={float:'right'} onclick='getAndDisplayOrHideQr("'+val.Id+'","svgContent' + val.Id + '")') 
+                  i.material-icons dashboard
     .row
       .col.l6.m6.col-md-offset-3
         a.btn.btn-primary(href="/login") Back 
+
+
+  script
+    include ../scripts/qrScript.js

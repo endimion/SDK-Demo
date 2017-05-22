@@ -45,30 +45,30 @@ router.post('/publish',(req,res) =>{
   let publishFnc = publishDiplomaSupplement(invReq,req,res);
 
   /**
-      closure to include a counter, to attempt to publish for a max of 10 times;
+  closure to include a counter, to attempt to publish for a max of 10 times;
   **/
   let tryToPublish = (function(){
     let counter = 0;
-    if(counter < 10){
-      return function(){
-        basic.enrollAndRegisterUsers(university,_enrollAttr)
-        .then(publishFnc)
-        .then( rsp => {
-          counter = 10;
-          res.send(rsp);
-        })
-        .catch(err =>{
+
+    return function(){
+      basic.enrollAndRegisterUsers(university,_enrollAttr)
+      .then(publishFnc)
+      .then( rsp => {
+        counter = 10;
+        res.send(rsp);
+      })
+      .catch(err =>{
+        if(counter < 10){
           console.log("AN ERROR OCCURED!!! atempt:"+counter+"\n");
           console.log(err);
           counter ++;
           tryToPublish();
-        });
+        }else{
+          res.send("failed, to get  supplements after " + counter + " attempts");
+        }
+      });
 
-      }
-    }else{
-      res.send("failed, to get  supplements after " + counter + " attempts");
     }
-
   })();
   tryToPublish();
 });
@@ -80,7 +80,7 @@ router.get('/view',(req,res) =>{
   let queryArgs = [req.session.eID];
   let userName = req.session.eID;
 
-  let enrollAttr = [{name:'typeOfUser',value:'University'}];
+  let enrollAttr = [{name:'typeOfUser',value: req.session.userType}];
   let queryAttributes = ['typeOfUser'];
 
   let testQ2 = new chainCodeQuery(queryAttributes, queryArgs, basic.config.chaincodeID,"getSupplements",basic.query);
@@ -104,30 +104,32 @@ router.get('/view',(req,res) =>{
   let tryToGetSupplements = (function(){
     let counter = 0;
     let supplements =[];
-    if(counter < 10){
-      return function(){
-        basic.enrollAndRegisterUsers(userName,enrollAttr)
-        .then(testQfunc2).then(response =>{
-          console.log("\nthe result is" + response);
-          // res.send(JSON.parse(response));
-          supplements = JSON.parse(response);
-          // process.exit(0);
-          counter = 10;
-          res.render('viewSupplements',{ title: 'Published Supplements',
-          message: 'Welcome user: ' + req.session.eID ,
-          supplements: supplements});
 
-        })
-        .catch(err =>{
-          console.log("AN ERROR OCCURED!!! atempt:"+counter+"\n");
-          console.log(err);
+    return function(){
+      basic.enrollAndRegisterUsers(userName,enrollAttr)
+      .then(testQfunc2)
+      .then(response =>{
+        console.log("\nthe result is" + response);
+        counter = 10;
+        // res.send(JSON.parse(response));
+        supplements = JSON.parse(response);
+        // process.exit(0);
+        res.render('viewSupplements',{ title: 'Published Supplements',
+        message: 'Welcome user: ' + req.session.eID , userType: req.session.userType,
+        supplements: supplements});
+      })
+      .catch(err =>{
+        console.log("AN ERROR OCCURED!!! atempt:"+counter+"\n");
+        console.log(err);
+        if(counter < 10){
           counter ++;
           tryToGetSupplements();
-        });
-      }
-    }else{
-      res.send("failed, to get  supplements after " + counter + " attempts");
+        }else{
+          res.send("failed, to get  supplements after " + counter + " attempts");
+        }
+      });
     }
+
 
   })();
   tryToGetSupplements();
@@ -171,7 +173,54 @@ function publishDiplomaSupplement(supplementRequest,req,res){
 }
 
 
+router.get('/edit/:supId',(req,res) =>{
+  let supId = req.params.supId;
+  let userName = req.session.eID;
+  let _args = [supId];
+  let _enrollAttr = [{name:'typeOfUser',value:req.session.userType},{name:"eID",value:req.session.eID}];
+  let _qAttr = ['typeOfUser','eID'];
+  console.log(_enrollAttr);
 
+  let getSupsById = new chainCodeQuery(_qAttr, _args, basic.config.chaincodeID,"getSupplementById",basic.query);
+  let getSupsByIdBound = getSupsById.makeQuery.bind(getSupsById);
+
+
+  let tryToGetSupplement = (function(){
+    let counter = 0;
+    let supplements =[];
+
+    return function(){
+      basic.enrollAndRegisterUsers(userName,_enrollAttr)
+      .then(getSupsByIdBound)
+      .then(response =>{
+        console.log("\nthe result is" + response);
+        counter = 10;
+        // res.send(JSON.parse(response));
+        supplements = supplements.push(JSON.parse(response));
+        // process.exit(0);
+        res.render('viewSupplements',{ title: 'Published Supplements',
+        message: 'Welcome user: ' + req.session.eID , userType: req.session.userType,
+        supplements: supplements});
+      })
+      .catch(err =>{
+        console.log("AN ERROR OCCURED!!! atempt:"+counter+"\n");
+        console.log(err);
+        if(counter < 10){
+          counter ++;
+          tryToGetSupplement();
+        }else{
+          res.send("failed, to get  supplement after " + counter + " attempts");
+        }
+      });
+    }
+
+
+  })();
+  tryToGetSupplement();
+
+
+  // res.send(supId);
+});
 
 
 module.exports = router

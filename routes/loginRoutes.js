@@ -9,40 +9,68 @@ const router = express.Router()
 router.get('/', function (req, res) {
   // res.send('Hello World from login');
   if(!req.session.userType  && !req.session.eID){
-      res.render('login',{ title: 'Login', message: 'Login to the DiplomaSupplement WebApp' });
+    res.render('login',{ title: 'Login', message: 'Login to the DiplomaSupplement WebApp' });
   }else{
-    //TODO split this for student view
-    res.render('univMainView',{ title: 'Publish a new Diploma Supplement',
-                                message: 'Welcome user: ' + req.session.eID ,
-                                university: req.session.eID});
+    if(req.session.userType === 'University'){
+      res.render('univMainView',{ title: 'University Management Page',
+      message: 'Welcome user: ' + req.session.eID ,
+      university: req.session.eID});
+    }else{
+      if(req.session.userType === 'Student'){
+        res.render('stdMainView',{ title: 'Publish a new Diploma Supplement',
+        message: 'Welcome user: ' + req.session.eID ,
+        stdId: req.session.eID});
+      }
+
+    }
   }
 
-})
+});
 
 router.post('/',(req,res) =>{
-    // console.log("req body " );
-    // console.log(req.body);
+  // console.log("req body " );
+  // console.log(req.body);
 
-    let userName = req.body.name;
-    let password = req.body.password;
-    if(userName.toLowerCase() === 'ntua' && password === 'panathinaikos'){
-        req.session.userType = 'university';
-        req.session.eID = 'ntua';
+  let userName = req.body.name;
+  let password = req.body.password;
+  if(userName.toLowerCase() === 'ntua' && password === 'panathinaikos'){
+    req.session.userType = 'University';
+    req.session.eID = 'ntua';
 
-        // res.send("University logged in");
-        res.render('univMainView',{ title: 'Publish a new Diploma Supplement',
-                                    message: 'Welcome user: ' + req.session.eID ,
-                                    university: req.session.eID});
+    // res.send("University logged in");
+    res.render('univMainView',{ title: 'Publish a new Diploma Supplement',
+    message: 'Welcome user: ' + req.session.eID ,
+    university: req.session.eID});
+  }else{
+    if(userName.toLowerCase() ==='student' || userName ){
+
+      req.session.userType = 'Student';
+      req.session.eID = userName;
+      res.render('stdMainView',{ title: 'Manage Your Diploma Supplements',
+      message: 'Welcome user: ' + req.session.eID ,
+      stdId: req.session.eID});
+    }else{
+      res.send("wrong username password combination")
+
     }
-    if(userName.toLowerCase() ==='student'){
 
-      req.session.userType = 'student';
-      req.session.eID = 'testWebStd1';
-      res.send("Student logged in");
+
+  }
+
+
+});
+
+
+router.get('/logout',(req,res) =>{
+  req.session.destroy(function(err) {
+    if(err) {
+      console.log(err);
+    } else {
+      res.redirect('/login');
     }
+  });
 
-    res.send("wrong username password combination")
-})
+});
 
 
 module.exports = router

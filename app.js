@@ -8,7 +8,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); //warning The default server-side session storage, MemoryStore, is purposely not designed for a production environment.
                                             //compatible session stores https://github.com/expressjs/session#compatible-session-stores
-
+const qr = require('./routes/qrCodeRoutes');
+const srvUtils = require('./utils/serverUtils.js');
 const basic = require('./basicFunctions');
 
 // view engine setup
@@ -29,11 +30,12 @@ app.use(session({
 app.use('/',viewRouters);
 app.use('/login',loginRoutes);
 app.use('/supplement',supplementRoutes);
+app.use('/qr',qr);
 
 
 
 //start the server
-let server = app.listen(port,(err,res) => {
+const server = app.listen(port,"127.0.0.1", (err,res) => {
   if(err){
     console.log("error!!", err);
   }else{
@@ -43,6 +45,8 @@ let server = app.listen(port,(err,res) => {
     console.log("Example app listening at http://%s:%s", host, port)
     console.log("server started");
     //initialize the blocokchain configuration
+    srvUtils.address = host;
+    // console.log(server.address());
     basic.init();
   }
 });
